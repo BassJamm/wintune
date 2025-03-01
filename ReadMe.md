@@ -2,6 +2,5 @@
 
 ## To Do
 
-- [x] Learn Markdown
-- [ ] Learn Frontend Development
-- [ ] Learn Full Stack Development
+- [x] Add Win32 App Results Script
+- [ ] Add Autopilot\OOBE troubleshooting bits
