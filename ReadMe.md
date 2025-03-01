@@ -2,4 +2,6 @@
 
 ## To Do
 
-- [ ] Win32 App result script.
+- [x] Learn Markdown
+- [ ] Learn Frontend Development
+- [ ] Learn Full Stack Development
