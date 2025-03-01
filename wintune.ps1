@@ -69,7 +69,7 @@ function ConnectMGGraph {
     LogDebug -message "Begin Connecting to Microsoft Graph function..." -toLogFile
     LogDebug -message "Checking for modules..." -toHost -toLogFile
     # Install Modules if not already installed
-    $requiredModules = @("Microsoft.Graph.Authentication", "Microsoft.Graph.Beta.Devices.CorporateManagement")
+    $requiredModules = @("Microsoft.Graph.Authentication", "Microsoft.Graph.Beta.Devices.CorporateManagement", "Microsoft.Graph.Beta.DeviceManagement")
     foreach ($module in $requiredModules) {
         if (!(Get-Module -ListAvailable -Name $module)) {
             LogDebug -message "Module $module is not installed. Attempting to install..." -toHost -toLogFile
@@ -90,7 +90,14 @@ function ConnectMGGraph {
     if ($null -eq (Get-MgContext).Account) {
         Write-Host "Connecting to Graph now, a separate window should launch..." -ForegroundColor Yellow
         # Connect to Graph
-        Connect-MgGraph -TenantId $TenantId -NoWelcome
+        $requiredScopes = @(
+            'DeviceManagementManagedDevices.Read.All', 
+            'DeviceManagementApps.Read.All', 
+            'Group.Read.All', 
+            'User.Read.All'
+        )
+        # Connect to Graph
+        Connect-MgGraph -Scopes $requiredScopes -TenantId $TenantId -NoWelcome
     }
     LogDebug -message "You are connected!" -level SUCCESS -toHost
     Get-MgContext | Select Account, @{ l = 'PermissionScopes'; e = { $_.Scopes -join "`n" } } | fl
@@ -188,8 +195,24 @@ do {
             }
         } "1" {
             clear-host
-            $output = Read-Host -Prompt "Do you want to output to console(c), to a file(f) or both(b)? write the corresponding letter"
-            .\Get-Win32AppResults.ps1 ## Got to here!
+            $output = Read-Host -Prompt "Do you want to output to out-gridview(o), to a csv file(f) or both(b)? write the corresponding letter"
+            switch ($output) {
+                "f" {
+                    $filePath = Read-Host -Prompt "Enter csv File path..."
+                    Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-get-win32-app-results/Get-Win32Appresults.ps1' | Invoke-Expression | Out-File $filePath 
+                }
+                "o" {
+                    Write-Host "Writing to console" -ForegroundColor Yellow
+                    $win32apps = Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-get-win32-app-results/Get-Win32Appresults.ps1' | Invoke-Expression
+                }
+                "b" {
+                    Write-Host "Writing to console and csv file" -ForegroundColor Yellow
+                    $filePath = Read-Host -Prompt "Enter File path..."
+                    $win32apps = Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-get-win32-app-results/Get-Win32Appresults.ps1' | Invoke-Expression
+                    $win32apps | Export-Csv -Path $filePath -NoTypeInformation
+                }
+                Default {}
+            }
         } "2" {
             clear-host
             "You chose option #2"
