@@ -2,4 +2,4 @@
 
 ## To Do
 
-- [] Win32 App result script.
+- [ ] Win32 App result script.
