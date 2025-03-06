@@ -169,3 +169,38 @@ function ConnectExchangeOnline {
 
 }
 #endregion
+
+#############################################
+#   Parse Intune Management Extension Logs  #
+#############################################
+
+function ParseIMELogs {
+    param (
+        [Parameter(ValueFromPipeline = $true)]
+        [string]
+        $fileName = "C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\Intune*.log"
+    )
+
+    Write-host "This script can parse most log entries from the IME logs, there are some however it cannot," -NoNewline -ForegroundColor Yellow
+    Write-Host "such as ones with newlines or carraige returns in...." -ForegroundColor Yellow
+    Start-Sleep -Seconds 2
+
+    $content = Get-Content $fileName -Raw
+    $normalizedContent = $content -replace "`r?`n", ""
+
+    $pattern = '<!\[LOG\[(?<Message>.*?)\]LOG\]!><time="(?<Time>[\d:.]+)" date="(?<Date>\d{1,2}-\d{1,2}-\d{4})"(?<Misc>.*?)>'
+    $count = 0
+    # Match all occurrences in the content
+    foreach ($match in [regex]::Matches($normalizedContent, $pattern)) {
+        # Create a PowerShell object for each match
+        [PSCustomObject]@{
+            No      = $count
+            Date    = $match.Groups["Date"].Value
+            Time    = $match.Groups["Time"].Value
+            Message = $match.Groups["Message"].Value.Trim()
+            Misc    = $match.Groups["Misc"].Value.Trim()
+        }
+
+        $count++
+    }
+}

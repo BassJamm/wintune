@@ -68,10 +68,12 @@ function Show-Menu {
     Write-Host " "
     Write-Host "Press the corresponding number for each option below."
     Write-Host " "
+	Write-Host "[e] Open Explorere to the WIntune File Location"
     Write-Host "[0] Authenticate with Microsoft Graph, Exchange Online and EntraId."
-    Write-Host "[1] (WIP) Get Autopilot Information: Collects all sorts of Autopilot data."
+    Write-Host "[1] Get Autopilot Information: Collects all sorts of Autopilot data."
     Write-Host "[2] (WIP) Get Policy Deployment Data: Collects info from Providers Regkey and SideCar."
     Write-Host "[3] Get Win32 App Results: Returns application deployment info to Out-GridView\CSV File or Both."
+    Write-Host "[4] View Intune Management Extensions Logs."
     Write-Host "[Q] Quit."
 }
 #endRegion
@@ -85,6 +87,9 @@ do {
     Write-Host " "
     $choice = Read-Host "Please make a selection"
     switch ($choice) {
+		"e" {
+			Invoke-Item "C:\Temp\wintune"
+		}
         "0" {
             Clear-Host
             Start-Sleep -Milliseconds 300
@@ -124,7 +129,9 @@ do {
                 }
                 Default {}
             }
-        } "q" {
+        } "4"{
+            ParseIMELogs | Out-GridView -Title "Intune Management Extension Logs"
+        }"q" {
             return
         }
     }
