@@ -42,6 +42,27 @@ function LogDebug {
 }
 #endRegion
 
+###########################
+#   Locate Tenant Data    #
+###########################
+
+function Get-DsRegCmdStatus {
+    # Run dsregcmd /status and capture the output
+    $dsregStatus = & dsregcmd /status
+
+    $tenantDeets = @{}
+    # Search for TenantName and TenantId in the output and add to the hash table
+    $tenantDeets["TenantName"] = ($dsregStatus | Select-String -Pattern "TenantName" | ForEach-Object { 
+            $_.Line.Trim() -replace "TenantName\s*:\s*", ""
+        })
+    $tenantDeets["TenantId"] = ($dsregStatus | Select-String -Pattern "TenantId" | ForEach-Object { 
+            $_.Line.Trim() -replace "TenantId\s*:\s*", ""
+        })
+    # Output the hash table
+    return $tenantDeets
+}
+#endRegion
+
 ###################################
 #   Connect to Microsoft Graph    #
 ###################################
@@ -116,7 +137,7 @@ function ConnectExchangeOnline {
         if (!(Get-Module -ListAvailable -Name $module)) {
             LogDebug -message "Module $module is not installed. Attempting to install..." -toHost -toLogFile
             try {
-                Install-Module -Name $module -Force -Scope CurrentUser -AllowClobber
+                Install-Module -Name $module -RequiredVersion 3.6.0 -Scope CurrentUser -AllowClobber    # v3.6.0 as 3.7 upwards has auth issue.
                 LogDebug -message "Module $module installed successfully." -level SUCCESS -toHost -toLogFile
             }
             catch {
@@ -128,7 +149,6 @@ function ConnectExchangeOnline {
         }
     }
 
-
     # Connect to Exchagne Online
     if ($null -eq (Get-ConnectionInformation).UserPrincipalName) {
         LogDebug -message "Trying to connect to Exchange Online" -toHost -toLogFile
@@ -137,7 +157,7 @@ function ConnectExchangeOnline {
         }
         catch {
             LogDebug -message "Error Authenticating with Exchange online" -level ERROR -toHost -toLogFile
-            LogDebug -message "$($Error[0].Exception.Message)" -level ERROR -toHost -toLogFile
+            LogDebug -message "$($Error[0])" -level ERROR -toHost -toLogFile
         }
     }
 
@@ -149,25 +169,3 @@ function ConnectExchangeOnline {
 
 }
 #endregion
-
-#####################
-#   Menu Function   #
-#####################
-
-function Show-Menu {
-    param (
-        [string]$Title = 'Windows Intune Troubleshooting Tools'
-    )
-    Clear-Host
-    Write-Host $Wintune -ForegroundColor Cyan
-    Write-Host "================ $Title ================"
-    Write-Host " "
-    Write-Host " Log File: $logFile"
-    Write-Host " "
-    Write-Host "0: Press '0' to Authenticate with Microsoft Graph, Exchange Onlin and EntraId."
-    Write-Host "1: Press '1' for this option."
-    Write-Host "2: Press '2' for this option."
-    Write-Host "3: Press '3' for this option."
-    Write-Host "Q: Press 'Q' to quit."
-}
-#endRegion

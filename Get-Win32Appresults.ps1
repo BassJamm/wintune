@@ -183,44 +183,12 @@ function Get-EnforcementTargetingMethod {
     }
 }
 
-#######################
-#    Script Starts    #
-#######################
-
 # Check for Graph Connection
-
-if ($null -eq (Get-MgContext).Account) {
-    Write-Host "No connection to Mg Graph Found, connecting..." -ForegroundColor Yellow
-
-    # Microsoft.Graph, Microsoft.Graph.Beta.Devices.CorporateManagement
-    # Check if the required modules are installed, if not, install them
-    $requiredModules = @("Microsoft.Graph.Authentication", "Microsoft.Graph.Beta.Devices.CorporateManagement")
-    foreach ($module in $requiredModules) {
-        if (-not (Get-Module -ListAvailable -Name $module)) {
-            Write-Host "Module $module is not installed. Attempting to install..." -ForegroundColor Yellow
-            try {
-                Install-Module -Name $module -Force -Scope CurrentUser -AllowClobber
-                Write-Host "Module $module installed successfully." -ForegroundColor Green
-            }
-            catch {
-                Write-Host "Failed to install module $module. Please install it manually." -ForegroundColor Red
-            }
-        }
-        else {
-            Write-Host "Module $module is already installed." -ForegroundColor Green
-        }
-    }
-
-}
-else {
-    Get-MgContext | Select Account, @{ l = 'PermissionScopes'; e = { $_.Scopes -join "`n" } } | fl
-    Start-Sleep -Seconds 2 # More pleasent experience for end user.
+if (!((Get-MgContext).Account)) {
+    throw
 }
 
 # Collect all intune apps
-# Uses Beta because it returns more apps\types of apps.
-# Graph API call returns more, possible update in future.
-Write-Host "Getting all intune applications" -ForegroundColor Yellow
 $intuneApps = Get-MgBetaDeviceAppManagementMobileApp -All
 
 # Get the Win32Apps registry key
@@ -236,7 +204,7 @@ $appKeyResults = @()
 Foreach ($getApp in $getValidContexts) {
     # get apps under each context
     $appKeys = gci -Path "$win32appKey\$(Split-Path -Path $getApp -Leaf)" -Force -ErrorAction SilentlyContinue
-    foreach ($key in $appKeys) {
+    foreach ($key in ($appKeys | ? name -notmatch GRS)) {
 
         # Get the key properties
         $keyValues = Get-ItemProperty -Path REGISTRY::$key
@@ -261,25 +229,24 @@ Foreach ($getApp in $getValidContexts) {
 
         # Bulding a custom object and adding the results to the $appKeyResults array, outside the loop.
         $appKeyResults += [PSCustomObject]@{
-            AppRegParent              = if ($null -eq (Split-Path $keyValues.PSParentPath -Leaf)){ " " } else { Split-Path $keyValues.PSParentPath -Leaf }
+            AppRegParent              = if (!(Split-Path $keyValues.PSParentPath -Leaf *>&1)){ "" } else { Split-Path $keyValues.PSParentPath -Leaf }
             AppGuid                   = $keyValues.PSChildName -replace '_\d+$'
             AppName                   = ($intuneApps | ? id -match ($keyValues.PSChildName -replace '_\d+$')).DisplayName
             ComplianceApplicability   = Get-ComplianceApplicability -ApplicabilityId $complianceMessages.Applicability
             ComplianceDesiredState    = Get-ComplianceDesiredState -DesiredStateId $complianceMessages.DesiredState
             ComplianceState           = Get-ComplianceStateMessage -StateId  $complianceMessages.ComplianceState
-            ComplianceErrorCode       = if ($null -eq $complianceMessages.ErrorCode) { "Null" } else { $complianceMessages.ErrorCode }
+            ComplianceErrorCode       = if (!($complianceMessages.ErrorCode)) { "Null" } else { $complianceMessages.ErrorCode }
             ComplianceTargetingMethod = Get-ComplianceTargetingMethod -TargetingMethodId $complianceMessages.TargetingMethod
             ComplianceInstallContext  = Get-ComplianceInstallContext -contextId $complianceMessages.InstallContext
             ComplianceInstallType     = Get-ComplianceTargetType -targetId $complianceMessages.TargetType
             EnforcementState          = Get-EnforcementStateMessage -StateId $enforcementState.EnforcementState
             EnforcementErrorCode      = Get-ComplianceTargetingMethod -TargetingMethodId $enforcementState.ErrorCode
             EnforcemntTargetingMethod = Get-EnforcementTargetingMethod -TargetingMethodId $enforcementState.TargetingMethod
-            ProductVersion            = if ($null -eq $complianceMessages.ProductVersion) { "Null" } else { $complianceMessages.ProductVersion }
-            AssignmentFilters         = if ($null -eq $complianceMessages.AssignmentFilterIds) { "Null" } else { $complianceMessages.AssignmentFilterIds }
+            ProductVersion            = $complianceMessages.ProductVersion
+            AssignmentFilters         = if(!($complianceMessages.AssignmentFilterIds)){ "None" } else { $complianceMessages.AssignmentFilterIds -join "," }
             RegPath                   = $keyValues.PSPath -replace "Microsoft.PowerShell.Core\\Registry::", ""
-        } 
+        }
     }
-
 }
 
 return $appKeyResults

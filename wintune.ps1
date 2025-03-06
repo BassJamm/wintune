@@ -1,4 +1,4 @@
-$Wintune =@"
+$Wintune = @"
 
 
                                                         XX
@@ -42,53 +42,82 @@ catch {
 #TODO - Smoothen this out
 $folders = @('Reports', 'Logs')
 try {
-    foreach($folder in $folders){
+    foreach ($folder in $folders) {
         New-Item -Path C:\Temp\Wintune -Name $folder -ItemType Directory -Force
     }
 }
 catch {
     Write-Error $_.Exception.Message
 }
-Pause
-# Run the menu
-do {
+#endRegion
 
+#####################
+#   Menu Function   #
+#####################
+
+function Show-Menu {
+    param (
+        [string]$Title = 'Windows Intune Troubleshooting Tools'
+    )
+    Clear-Host
+    Write-Host $Wintune -ForegroundColor Cyan
+    Write-Host "================ $Title ================"
+    Write-Host " "
+    Write-Host " Log File: $logFile"
+    Write-Host " "
+    Write-Host "Press the corresponding number for each option below."
+    Write-Host " "
+    Write-Host "0: Press '0' to Authenticate with Microsoft Graph, Exchange Online and EntraId."
+    Write-Host "1: Press '1' for this option."
+    Write-Host "2: Press '2' for this option."
+    Write-Host "3: Press '3' for this option."
+    Write-Host "Q: Press 'Q' to quit."
+}
+#endRegion
+
+########################
+#   Menu Entry Point   #
+########################
+
+do {
     Show-Menu
     $choice = Read-Host "Please make a selection"
     switch ($choice) {
         "0" {
             Clear-Host
-            $getTenant = Read-Host "Enter the Tenantid you want to connect to, press enter to progress..."
-            if ($getTenant) {
-                Start-Sleep -Milliseconds 300
-                ConnectMGGraph -TenantId $getTenant
-                Start-Sleep -Milliseconds 300
-                ConnectExchangeOnline
-            }
+            Start-Sleep -Milliseconds 300
+            $tenant = Get-DsRegCmdStatus
+            Write-Host "Connecting to Tenant $($tenant.TenantName)"
+            ConnectMGGraph -TenantId $tenant.TenantId
+            Start-Sleep -Milliseconds 300
+            ConnectExchangeOnline
         } "1" {
             clear-host
             $output = Read-Host -Prompt "Do you want to output to out-gridview(o), to a csv file(f) or both(b)? write the corresponding letter"
             switch ($output) {
                 "f" {
                     $filePath = Read-Host -Prompt "Enter csv File path..."
-                    Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-get-win32-app-results/Get-Win32Appresults.ps1' | Invoke-Expression | Out-File $filePath
+                    Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-get-win32-app-results/Get-Win32Appresults.ps1' | `
+                        Invoke-Expression | `
+                        Export-Csv 'C:\Temp\Wintune\Reports\Win32AppResults.csv' -NoTypeInformation
                 }
                 "o" {
                     Write-Host "Writing to console" -ForegroundColor Yellow
                     <# debugging  Remove the region below #> #TODO - Implement this functionality with the IRM
-                    $win32apps = & "$PSScriptRoot\Get-Win32Appresults.ps1"
-                    $win32apps | Out-GridView -Title 'Win32 App Results'
-                    $win32apps | Export-Csv 'C:\Temp\Wintune\Reports\Win32AppResults.csv' -NoTypeInformation
-                    Write-Host 'Data has been exported to C:\Temp\Wintune\Reports'
+                    & "$PSScriptRoot\Get-Win32Appresults.ps1" | `
+                        Out-GridView -Title 'Win32 App Results'
                     #endRegionDebug #TODO - Remove this region
-                    #$win32apps = Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-get-win32-app-results/Get-Win32Appresults.ps1' | Invoke-Expression
+                    #$win32apps = Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-get-win32-app-results/Get-Win32Appresults.ps1' | `
+                        Invoke-Expression
                     #$win32apps | Out-GridView -Wait -Title 'Win32 App Results'
                 }
                 "b" {
                     Write-Host "Writing to console and csv file" -ForegroundColor Yellow
-                    $filePath = Read-Host -Prompt "Enter File path..."
-                    $win32apps = Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-get-win32-app-results/Get-Win32Appresults.ps1' | Invoke-Expression
+                    $win32apps = Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-get-win32-app-results/Get-Win32Appresults.ps1' | `
+                        Invoke-Expression
+                    $win32apps | Out-GridView -Title 'Win32 App Results'
                     $win32apps | Export-Csv 'C:\Temp\Wintune\Reports\Win32AppResults.csv' -NoTypeInformation
+                    Write-Output 'Data has been exported to C:\Temp\Wintune\Reports'
                 }
                 Default {}
             }
@@ -105,6 +134,7 @@ do {
     pause
 }
 until ($input -eq "q")
+#endRegion
 
 # SIG # Begin signature block
 # MIIblwYJKoZIhvcNAQcCoIIbiDCCG4QCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
