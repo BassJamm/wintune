@@ -241,8 +241,8 @@ Foreach ($getApp in $getValidContexts) {
         # Get the key properties
         $keyValues = Get-ItemProperty -Path REGISTRY::$key
 
-        # Cheeky host update to show progress
-        Write-Host "Working on: $($keyValues.PSPath -replace 'Microsoft.PowerShell.Core\\Registry::','')" -ForegroundColor Yellow
+        # Cheeky host update to show progress, DEBUG ONLY
+        #Write-Host "Working on: $($keyValues.PSPath -replace 'Microsoft.PowerShell.Core\\Registry::','')" -ForegroundColor Yellow
 
         # Get the subkeys
         $subKeys = gci $keyValues.PSPath -ErrorAction SilentlyContinue
