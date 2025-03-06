@@ -185,7 +185,8 @@ function Get-EnforcementTargetingMethod {
 
 # Check for Graph Connection
 if (!((Get-MgContext).Account)) {
-    throw
+    Write-Host "Not connect to MG Graph, run again and press option 0 to authenticate" -ForegroundColor Red
+    Break
 }
 
 # Collect all intune apps

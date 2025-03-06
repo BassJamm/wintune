@@ -21,25 +21,10 @@ $Wintune = @"
 
 "@
 
-#################################
-#   Load Functions into session #
-#################################
-
-try {
-    <# Debugging #>
-    Import-Module "$PSScriptRoot\HelperFunctions.psm1"
-    #Invoke-WebRequest 'https://sauksscripting.blob.core.windows.net/public-get-win32-app-results/Helper_Functions.ps1' | Invoke-Expression
-}
-catch {
-    Write-Error "Failed to import the helper functions..."
-    Throw
-}
-#endRegion
-
 ###################################
 #   Create Folder Paths needed    #
 ###################################
-#TODO - Smoothen this out
+
 $folders = @('Reports', 'Logs')
 try {
     foreach ($folder in $folders) {
@@ -48,6 +33,22 @@ try {
 }
 catch {
     Write-Error $_.Exception.Message
+}
+#endRegion
+
+#################################
+#   Load Functions into session #
+#################################
+
+try {
+    <# Debugging #>
+    Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-wintunehelperfunctions/HelperFunctions.psm1' | `
+        Out-File C:\Temp\Wintune\helperfunctions.psm1
+    Import-Module C:\Temp\Wintune\helperfunctions.psm1
+}
+catch {
+    Write-Error "Failed to import the helper functions..."
+    Throw
 }
 #endRegion
 
@@ -63,15 +64,15 @@ function Show-Menu {
     Write-Host $Wintune -ForegroundColor Cyan
     Write-Host "================ $Title ================"
     Write-Host " "
-    Write-Host " Log File: $logFile"
+    Write-Host " Log File: C:\Temp\Wintune\Logs"
     Write-Host " "
     Write-Host "Press the corresponding number for each option below."
     Write-Host " "
-    Write-Host "0: Press '0' to Authenticate with Microsoft Graph, Exchange Online and EntraId."
-    Write-Host "1: Press '1' for this option."
-    Write-Host "2: Press '2' for this option."
-    Write-Host "3: Press '3' for this option."
-    Write-Host "Q: Press 'Q' to quit."
+    Write-Host "[0] Authenticate with Microsoft Graph, Exchange Online and EntraId."
+    Write-Host "[1] (WIP) Get Autopilot Information: Collects all sorts of Autopilot data."
+    Write-Host "[2] (WIP) Get Policy Deployment Data: Collects info from Providers Regkey and SideCar."
+    Write-Host "[3] Get Win32 App Results: Returns application deployment info to Out-GridView\CSV File or Both."
+    Write-Host "[Q] Quit."
 }
 #endRegion
 
@@ -81,6 +82,7 @@ function Show-Menu {
 
 do {
     Show-Menu
+    Write-Host " "
     $choice = Read-Host "Please make a selection"
     switch ($choice) {
         "0" {
@@ -93,40 +95,36 @@ do {
             ConnectExchangeOnline
         } "1" {
             clear-host
+            "Collect and Review Autopilot Diagnostic Logs"
+            "Uses MDMDiagnostics.exe and Get-AutopilotDiagnosticinfoCommunity Script"
+        } "2" {
+            clear-host
+            "Collect and Review policy deployment Data"
+        } "3" {
+            clear-host
             $output = Read-Host -Prompt "Do you want to output to out-gridview(o), to a csv file(f) or both(b)? write the corresponding letter"
             switch ($output) {
                 "f" {
-                    $filePath = Read-Host -Prompt "Enter csv File path..."
+                    Write-Host "Writing to file..." -ForegroundColor Yellow
                     Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-get-win32-app-results/Get-Win32Appresults.ps1' | `
                         Invoke-Expression | `
                         Export-Csv 'C:\Temp\Wintune\Reports\Win32AppResults.csv' -NoTypeInformation
                 }
                 "o" {
-                    Write-Host "Writing to console" -ForegroundColor Yellow
-                    <# debugging  Remove the region below #> #TODO - Implement this functionality with the IRM
-                    & "$PSScriptRoot\Get-Win32Appresults.ps1" | `
-                        Out-GridView -Title 'Win32 App Results'
-                    #endRegionDebug #TODO - Remove this region
-                    #$win32apps = Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-get-win32-app-results/Get-Win32Appresults.ps1' | `
-                        Invoke-Expression
-                    #$win32apps | Out-GridView -Wait -Title 'Win32 App Results'
+                    Write-Host "Out-Gridview selected..." -ForegroundColor Yellow
+                    $win32apps = Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-get-win32-app-results/Get-Win32Appresults.ps1' | Invoke-Expression
+                    $win32apps | Out-GridView -Wait -Title 'Win32 App Results'
                 }
                 "b" {
-                    Write-Host "Writing to console and csv file" -ForegroundColor Yellow
-                    $win32apps = Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-get-win32-app-results/Get-Win32Appresults.ps1' | `
-                        Invoke-Expression
+                    Write-Host "Writing to console and csv file..." -ForegroundColor Yellow
+                    Write-Output 'Data wil be been exported to C:\Temp\Wintune\Reports'
+                    Start-Sleep -Milliseconds 300
+                    $win32apps = Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-get-win32-app-results/Get-Win32Appresults.ps1' | Invoke-Expression
                     $win32apps | Out-GridView -Title 'Win32 App Results'
                     $win32apps | Export-Csv 'C:\Temp\Wintune\Reports\Win32AppResults.csv' -NoTypeInformation
-                    Write-Output 'Data has been exported to C:\Temp\Wintune\Reports'
                 }
                 Default {}
             }
-        } "2" {
-            clear-host
-            "You chose option #2"
-        } "3" {
-            clear-host
-            "You chose option #3"
         } "q" {
             return
         }
