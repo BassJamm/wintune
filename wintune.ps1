@@ -42,7 +42,7 @@ catch {
 
 try {
     <# Debugging #>
-    Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-wintunehelperfunctions/HelperFunctions.psm1' | `
+    Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-wintune/HelperFunctions.psm1' | `
         Out-File C:\Temp\Wintune\helperfunctions.psm1
     Import-Module C:\Temp\Wintune\helperfunctions.psm1
 }
@@ -95,8 +95,7 @@ do {
             ConnectExchangeOnline
         } "1" {
             clear-host
-            "Collect and Review Autopilot Diagnostic Logs"
-            "Uses MDMDiagnostics.exe and Get-AutopilotDiagnosticinfoCommunity Script"
+            Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-wintune/Get-mdmdiags.ps1' | Invoke-Expression
         } "2" {
             clear-host
             "Collect and Review policy deployment Data"
@@ -106,20 +105,20 @@ do {
             switch ($output) {
                 "f" {
                     Write-Host "Writing to file..." -ForegroundColor Yellow
-                    Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-get-win32-app-results/Get-Win32Appresults.ps1' | `
+                    Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-wintune/Get-Win32Appresults.ps1' | `
                         Invoke-Expression | `
                         Export-Csv 'C:\Temp\Wintune\Reports\Win32AppResults.csv' -NoTypeInformation
                 }
                 "o" {
                     Write-Host "Out-Gridview selected..." -ForegroundColor Yellow
-                    $win32apps = Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-get-win32-app-results/Get-Win32Appresults.ps1' | Invoke-Expression
+                    $win32apps = Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-wintune/Get-Win32Appresults.ps1' | Invoke-Expression
                     $win32apps | Out-GridView -Wait -Title 'Win32 App Results'
                 }
                 "b" {
                     Write-Host "Writing to console and csv file..." -ForegroundColor Yellow
                     Write-Output 'Data wil be been exported to C:\Temp\Wintune\Reports'
                     Start-Sleep -Milliseconds 300
-                    $win32apps = Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-get-win32-app-results/Get-Win32Appresults.ps1' | Invoke-Expression
+                    $win32apps = Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-wintune/Get-Win32Appresults.ps1' | Invoke-Expression
                     $win32apps | Out-GridView -Title 'Win32 App Results'
                     $win32apps | Export-Csv 'C:\Temp\Wintune\Reports\Win32AppResults.csv' -NoTypeInformation
                 }

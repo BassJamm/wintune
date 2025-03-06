@@ -4,10 +4,12 @@
 #>
 
 # Collect diag logs
+Write-Host "Collecting Autopilot Diagnostics" -ForegroundColor Yellow
 Start-Process "C:\windows\System32\MdmDiagnosticsTool.exe" -ArgumentList "-area Autopilot -zip C:\Temp\Wintune\mdmdiags.zip" -NoNewWindow
+Start-Sleep -Seconds 2
 
 if(Test-Path 'C:\Temp\Wintune\mdmdiags.zip'){
-    Write-Output "Diagnostic Logs collected successfully"
+    Write-Output "Diagnostic Logs collected successfully" -ForegroundColor Green
 } else {
     Write-Host "Error collecting Diagnostic Logs, please try again." -ForegroundColor Red
     Return
