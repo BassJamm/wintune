@@ -6,6 +6,7 @@
 - [X] Figure out script signing
 - [X] Add Win32 App Results Script
 - [X] Add Autopilot\OOBE troubleshooting bits
+- [ ] Add Hash upload [Get-WindowsAutopilotInfoCommunity](https://www.powershellgallery.com/packages/get-windowsautopilotinfocommunity/1.0.0)
 
 ## Script Exectuion
 
