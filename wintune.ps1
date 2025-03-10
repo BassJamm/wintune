@@ -41,7 +41,6 @@ catch {
 #################################
 
 try {
-    <# Debugging #>
     Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-wintune/HelperFunctions.psm1' | `
         Out-File C:\Temp\Wintune\helperfunctions.psm1
     Import-Module C:\Temp\Wintune\helperfunctions.psm1
@@ -64,7 +63,7 @@ function Show-Menu {
     Write-Host $Wintune -ForegroundColor Cyan
     Write-Host "================ $Title ================"
     Write-Host " "
-    Write-Host " Log File: C:\Temp\Wintune\Logs"
+    Write-Host "Log File: C:\Temp\Wintune\Logs"
     Write-Host " "
     Write-Host "Press the corresponding number for each option below."
     Write-Host " "
@@ -92,10 +91,7 @@ do {
 		}
         "0" {
             Clear-Host
-            Start-Sleep -Milliseconds 300
-            $tenant = Get-DsRegCmdStatus
-            Write-Host "Connecting to Tenant $($tenant.TenantName)"
-            ConnectMGGraph -TenantId $tenant.TenantId
+            ConnectMGGraph
             Start-Sleep -Milliseconds 300
             ConnectExchangeOnline
         } "1" {

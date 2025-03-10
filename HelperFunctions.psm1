@@ -42,38 +42,11 @@ function LogDebug {
 }
 #endRegion
 
-###########################
-#   Locate Tenant Data    #
-###########################
-
-function Get-DsRegCmdStatus {
-    # Run dsregcmd /status and capture the output
-    $dsregStatus = & dsregcmd /status
-
-    $tenantDeets = @{}
-    # Search for TenantName and TenantId in the output and add to the hash table
-    $tenantDeets["TenantName"] = ($dsregStatus | Select-String -Pattern "TenantName" | ForEach-Object { 
-            $_.Line.Trim() -replace "TenantName\s*:\s*", ""
-        })
-    $tenantDeets["TenantId"] = ($dsregStatus | Select-String -Pattern "TenantId" | ForEach-Object { 
-            $_.Line.Trim() -replace "TenantId\s*:\s*", ""
-        })
-    # Output the hash table
-    return $tenantDeets
-}
-#endRegion
-
 ###################################
 #   Connect to Microsoft Graph    #
 ###################################
 
 function ConnectMGGraph {
-    [CmdletBinding()]
-    param (
-        [Parameter()]
-        [string]
-        $TenantId
-    )
 
     LogDebug -message "Begin Connecting to Microsoft Graph function..." -toLogFile
     LogDebug -message "Checking for modules..." -toHost -toLogFile
@@ -106,12 +79,11 @@ function ConnectMGGraph {
             'User.Read.All'
         )
         # Connect to Graph
-        Connect-MgGraph -Scopes $requiredScopes -TenantId $TenantId -NoWelcome
+        Connect-MgGraph -Scopes $requiredScopes -NoWelcome
     }
     LogDebug -message "You are connected!" -level SUCCESS -toHost
-    Get-MgContext | Select Account, @{ l = 'PermissionScopes'; e = { $_.Scopes -join "`n" } } | fl
+    Get-MgContext | Select-Object Account, @{ l = 'PermissionScopes'; e = { $_.Scopes -join "`n" } } | Format-List
     Start-Sleep -Seconds 2 # More pleasent experience for end user.
-
     LogDebug -message "End of Connecting to Microsoft Graph function..." -toLogFile
 }
 #endRegion
