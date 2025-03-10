@@ -176,3 +176,30 @@ function ParseIMELogs {
         $count++
     }
 }
+
+################################
+#   Get Devices Sync History   #
+################################
+function GetDeviceSyncHistory ($Source) {
+    $syncType = switch ($Source) {
+        'UserAgentOrigin: (0x1)' { "Account Settings Initiated Check-in." }
+        'UserAgentOrigin: (0x5)' { "Account Settings Initiated Check-in." }
+        'UserAgentOrigin: (0x2)' { "Device Initiated Check-in." }
+        'UserAgentOrigin: (0x4)' { "Device Initiated Check-in at user logon." }
+        'UserAgentOrigin: (0x8)' { "Company Portal Initiated Check-in." }
+        'UserAgentOrigin: (0x7)' { "Intune Initiated Check-in." }
+        Default { "Unknown Source" }
+    }
+    $properties = @(
+        'TimeCreated',
+        @{l = 'Source'; e = { InTuneAction -Source ( $_.message | Select-String 'UserAgentOrigin:\s\(0x.\)' ).Matches.Value } }
+    )
+    Write-Host "Getting Data from Event Logs" -ForegroundColor Yellow
+    # Get the events using the filter hashtable
+    Get-WinEvent -FilterHashTable @{
+        LogName   = 'Microsoft-Windows-DeviceManagement-Enterprise-Diagnostics-Provider/Admin'
+        Id        = 208
+        StartTime = (Get-Date).AddDays(-2)
+    } | Select-Object $properties
+}
+#endRegion

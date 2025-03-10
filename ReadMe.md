@@ -2,9 +2,10 @@
 
 ## To Do
 
+- [X] Add parsing ime logs (useful for OOBE troubleshooting)
 - [X] Figure out script signing
-- [ ] Add Win32 App Results Script
-- [ ] Add Autopilot\OOBE troubleshooting bits
+- [X] Add Win32 App Results Script
+- [X] Add Autopilot\OOBE troubleshooting bits
 
 ## Script Exectuion
 

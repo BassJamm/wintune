@@ -67,12 +67,13 @@ function Show-Menu {
     Write-Host " "
     Write-Host "Press the corresponding number for each option below."
     Write-Host " "
-	Write-Host "[e] Open Explorere to the WIntune File Location"
+    Write-Host "[e] Open Explorere to the WIntune File Location"
     Write-Host "[0] Authenticate with Microsoft Graph, Exchange Online and EntraId."
     Write-Host "[1] Get Autopilot Information: Collects all sorts of Autopilot data."
     Write-Host "[2] (WIP) Get Policy Deployment Data: Collects info from Providers Regkey and SideCar."
     Write-Host "[3] Get Win32 App Results: Returns application deployment info to Out-GridView\CSV File or Both."
     Write-Host "[4] View Intune Management Extensions Logs."
+    Write-Host "[5] Get the device sync history with Intune."
     Write-Host "[Q] Quit."
 }
 #endRegion
@@ -86,9 +87,9 @@ do {
     Write-Host " "
     $choice = Read-Host "Please make a selection"
     switch ($choice) {
-		"e" {
-			Invoke-Item "C:\Temp\wintune"
-		}
+        "e" {
+            Invoke-Item "C:\Temp\wintune"
+        }
         "0" {
             Clear-Host
             ConnectMGGraph
@@ -125,13 +126,27 @@ do {
                 }
                 Default {}
             }
-        } "4"{
+        } "4" {
+            Clear-Host
             ParseIMELogs | Out-GridView -Title "Intune Management Extension Logs"
+        } "5" {
+            Clear-Host
+            Write-Host "Getting Data from Event Logs" -ForegroundColor Yellow
+            $properties = @(
+                'TimeCreated',
+                @{l = 'Source'; e = { GetDeviceSyncHistory -Source ( $_.message | Select-String 'UserAgentOrigin:\s\(0x.\)' ).Matches.Value } }
+            )
+            Get-WinEvent -FilterHashTable @{
+                LogName   = 'Microsoft-Windows-DeviceManagement-Enterprise-Diagnostics-Provider/Admin'
+                Id        = 208
+                StartTime = (Get-Date).AddDays(-2)
+            } | Select-Object $properties | Format-Table -AutoSize
         }"q" {
             return
         }
     }
-    pause
+    Write-Host "Pausing here in case you want to read the above..." -ForegroundColor Yellow
+    Read-Host -Prompt "Press Enter to continue"
 }
 until ($input -eq "q")
 #endRegion
