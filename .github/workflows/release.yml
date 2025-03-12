@@ -39,6 +39,6 @@ jobs:
               --account-name sauksscripting \
               --account-key ${{ secrets.AZURE_STORAGE_KEY }} \
               --container-name public-wintune \
-              --file Scripts/wintune.ps1 \
-              --name wintune.ps1 \
+              --file Wintune.ps1 \
+              --name Wintune.ps1 \
               --overwrite
