@@ -1,0 +1,41 @@
+name: Upload Scripts to Azure Blob Storage
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to the main branch
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Upload files to Azure Blob Storage
+        uses: azure/CLI@v1
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az storage blob upload-batch \
+              --account-name sauksscripting \
+              --account-key ${{ secrets.AZURE_STORAGE_KEY }} \
+              --destination public-wintune \
+              --source Scripts/ \
+              --overwrite
+
+            az storage blob upload-batch \
+              --account-name sauksscripting \
+              --account-key ${{ secrets.AZURE_STORAGE_KEY }} \
+              --destination public-wintune \
+              --source Modules/ \
+              --overwrite
+
+            az storage blob upload \
+              --account-name sauksscripting \
+              --account-key ${{ secrets.AZURE_STORAGE_KEY }} \
+              --container-name public-wintune \
+              --file Wintune.ps1 \
+              --name Wintune.ps1 \
+              --overwrite
