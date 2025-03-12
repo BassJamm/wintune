@@ -3,7 +3,7 @@ name: Upload Scripts to Azure Blob Storage
 on:
   push:
     branches:
-      - main  # Trigger on push to the main branch
+      - main
 
 jobs:
   upload:
@@ -12,6 +12,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Debug - List Files
+        run: ls -R
 
       - name: Upload files to Azure Blob Storage
         uses: azure/CLI@v1
@@ -36,6 +39,6 @@ jobs:
               --account-name sauksscripting \
               --account-key ${{ secrets.AZURE_STORAGE_KEY }} \
               --container-name public-wintune \
-              --file Wintune.ps1 \
-              --name Wintune.ps1 \
+              --file Scripts/wintune.ps1 \
+              --name wintune.ps1 \
               --overwrite

@@ -16,11 +16,11 @@ $diagFileName = "mdmdiags-$runTime.zip"
 
 # Collect diag logs
 Write-Host "Collecting Autopilot Diagnostics" -ForegroundColor Yellow
-Start-Process "C:\windows\System32\MdmDiagnosticsTool.exe" -ArgumentList "-area Autopilot -zip C:\Temp\Wintune\AutopilotDiag\$diagFileName" -NoNewWindow
+Start-Process "C:\windows\System32\MdmDiagnosticsTool.exe" -ArgumentList "-area Autopilot -zip C:\Temp\Wintune\AutopilotDiag\$diagFileName" -NoNewWindow -Wait
 Start-Sleep -Seconds 15
 
 if(Test-Path "C:\Temp\Wintune\AutopilotDiag\$diagFileName"){
-    Write-Host "Diagnostic Logs collected successfully" -ForegroundColor Green
+    Write-Host "Diagnostic Logs collected successfully" -ForegroundColor Yellow
 } else {
     Write-Host "Error collecting Diagnostic Logs, please try again." -ForegroundColor Red
     Return
@@ -43,6 +43,8 @@ if(!(Get-InstalledScript Get-AutopilotDiagnosticsCommunity)){
     }
 }
 # Run the script
-Write-Host "Writing output to here, $outPutFilename"
+Write-Host "Exporting all data here, $outPutFilename" -ForegroundColor Yellow
 Get-AutopilotDiagnosticsCommunity.ps1 -ZIPFile "C:\Temp\Wintune\AutopilotDiag\$diagFileName" -Online *>&1 | Tee-Object -FilePath "C:\Temp\Wintune\AutopilotDiag\$outPutFilename"
 #endRegion
+
+Write-Host "Completed Get-MDMDiagnostics flow" -ForegroundColor Green
