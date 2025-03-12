@@ -24,7 +24,6 @@ $Wintune = @"
 ###################################
 #   Create Folder Paths needed    #
 ###################################
-
 $folders = @('Reports', 'Logs')
 try {
     foreach ($folder in $folders) {
@@ -39,7 +38,6 @@ catch {
 #################################
 #   Load Functions into session #
 #################################
-
 try {
     Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-wintune/HelperFunctions.psm1' | `
         Out-File C:\Temp\Wintune\helperfunctions.psm1
@@ -54,7 +52,6 @@ catch {
 #####################
 #   Menu Function   #
 #####################
-
 function Show-Menu {
     param (
         [string]$Title = 'Windows Intune Troubleshooting Tools'
@@ -81,7 +78,6 @@ function Show-Menu {
 ########################
 #   Menu Entry Point   #
 ########################
-
 do {
     Show-Menu
     Write-Host " "
