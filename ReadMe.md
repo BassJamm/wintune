@@ -4,4 +4,4 @@
 
 Sitting in public Blob
 
-`irm https://sauksscripting.blob.core.windows.net/public-wintune/wintune.ps1 | iex`
+`irm https://sauksscripting.blob.core.windows.net/public-wintune/Wintune.ps1 | iex`
