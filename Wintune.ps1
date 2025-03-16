@@ -64,10 +64,10 @@ function Show-Menu {
     Write-Host " "
     Write-Host "Press the corresponding number for each option below."
     Write-Host " "
-    Write-Host "[e] Open Explorere to the WIntune File Location"
+    Write-Host "[e] Open Explorer to the WIntune File Location"
     Write-Host "[0] Authenticate with Microsoft Graph, Exchange Online and EntraId."
     Write-Host "[1] Get Autopilot Information: Collects all sorts of Autopilot data."
-    Write-Host "[2] (WIP) Get Policy Deployment Data: Collects info from Providers Regkey and SideCar."
+    Write-Host "[2] Test Attestation readiness: Confirms TPM and Device is ready to go."
     Write-Host "[3] Get Win32 App Results: Returns application deployment info to Out-GridView\CSV File or Both."
     Write-Host "[4] View Intune Management Extensions Logs."
     Write-Host "[5] Get the device sync history with Intune."
@@ -96,7 +96,7 @@ do {
             Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-wintune/Get-mdmdiags.ps1' | Invoke-Expression
         } "2" {
             clear-host
-            "Collect and Review policy deployment Data"
+            Invoke-RestMethod 'https://sauksscripting.blob.core.windows.net/public-wintune/Check-AutopilotAttestation.ps1' | Invoke-Expression
         } "3" {
             clear-host
             $output = Read-Host -Prompt "Do you want to output to out-gridview(o), to a csv file(f) or both(b)? write the corresponding letter"
