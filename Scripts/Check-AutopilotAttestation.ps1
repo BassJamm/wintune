@@ -43,8 +43,13 @@ try {
     test-autopilotattestation *>&1 | Tee-Object -FilePath "C:\Temp\Wintune\Reports\$outPutFilename"
 }
 catch {
-    $_
-    return
+    # Handle the command not found error for wmic being deprected.
+    if ($_.FullyQualifiedErrorId -match "CommandNotFoundException") {
+        Write-Host "Warning: WMIC is deprecated or missing, but script will continue."
+    } else {
+        Write-Host "Fatal error occurred: $($_.Exception.Message)"
+        return
+    }
 }
 
 Write-Host "Exported console output to C:\Temp\Wintune\Reports\$outPutFilename" -ForegroundColor Yellow
