@@ -39,18 +39,9 @@ Write-Host "Required module already installed, proceeding..." -ForegroundColor Y
 #   Execute script   #
 ######################
 Write-Host "Executing attestattion testing command..." -ForegroundColor Yellow
-try {
-    test-autopilotattestation *>&1 | Tee-Object -FilePath "C:\Temp\Wintune\Reports\$outPutFilename"
-}
-catch {
-    # Handle the command not found error for wmic being deprected.
-    if ($_.FullyQualifiedErrorId -match "CommandNotFoundException") {
-        Write-Host "Warning: WMIC is deprecated or missing, but script will continue."
-    } else {
-        Write-Host "Fatal error occurred: $($_.Exception.Message)"
-        return
-    }
-}
+
+# No try catch due to deprecated wmic commands, seems to break the try-catch process even with exception handling.
+test-autopilotattestation *>&1 | Tee-Object -FilePath "C:\Temp\Wintune\Reports\$outPutFilename"
 
 Write-Host "Exported console output to C:\Temp\Wintune\Reports\$outPutFilename" -ForegroundColor Yellow
 #endRegion
